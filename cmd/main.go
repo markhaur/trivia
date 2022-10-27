@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/markhaur/trivia/database"
+	"github.com/markhaur/trivia/handlers"
 )
 
 func main() {
@@ -10,9 +11,13 @@ func main() {
 
 	app := fiber.New()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, markhaur here!")
-	})
+	setupRoutes(app)
 
 	app.Listen(":3000")
+}
+
+func setupRoutes(app *fiber.App) {
+	app.Get("/home", handlers.Home)
+	app.Get("/", handlers.ListFacts)
+	app.Post("/fact", handlers.CreateFact)
 }
