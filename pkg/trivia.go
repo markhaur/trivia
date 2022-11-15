@@ -1,4 +1,4 @@
-package trivia
+package pkg
 
 import (
 	"context"
