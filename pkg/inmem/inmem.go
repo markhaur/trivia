@@ -4,27 +4,27 @@ import (
 	"context"
 	"sync"
 
-	"github.com/markhaur/trivia"
+	"github.com/markhaur/trivia/pkg"
 )
 
 type triviaRepository struct {
 	sync.RWMutex
-	trivialist []trivia.Trivia
+	trivialist []pkg.Trivia
 	exists     map[int64]bool
 	counter    int64
 }
 
-func NewTriviaRepository() trivia.TriviaRepository {
-	return &triviaRepository{trivialist: []trivia.Trivia{}}
+func NewTriviaRepository() pkg.TriviaRepository {
+	return &triviaRepository{trivialist: []pkg.Trivia{}}
 }
 
-func (tr *triviaRepository) Insert(_ context.Context, newTrivia *trivia.Trivia) error {
+func (tr *triviaRepository) Insert(_ context.Context, newTrivia *pkg.Trivia) error {
 	tr.Lock()
 	defer tr.Unlock()
 
 	if newTrivia.ID > 0 {
 		if tr.exists[newTrivia.ID] {
-			return trivia.ErrTriviaAlreadyExists
+			return pkg.ErrTriviaAlreadyExists
 		}
 
 		tr.exists[newTrivia.ID] = true
@@ -42,14 +42,14 @@ func (tr *triviaRepository) Insert(_ context.Context, newTrivia *trivia.Trivia) 
 	return nil
 }
 
-func (tr *triviaRepository) FindAll(_ context.Context) ([]trivia.Trivia, error) {
+func (tr *triviaRepository) FindAll(_ context.Context) ([]pkg.Trivia, error) {
 	tr.RLock()
 	defer tr.RUnlock()
 
 	return tr.trivialist, nil
 }
 
-func (tr *triviaRepository) FindByID(_ context.Context, id int64) (*trivia.Trivia, error) {
+func (tr *triviaRepository) FindByID(_ context.Context, id int64) (*pkg.Trivia, error) {
 	tr.RLock()
 	defer tr.RUnlock()
 
@@ -58,10 +58,10 @@ func (tr *triviaRepository) FindByID(_ context.Context, id int64) (*trivia.Trivi
 			return &t, nil
 		}
 	}
-	return nil, trivia.ErrTriviaNotFound
+	return nil, pkg.ErrTriviaNotFound
 }
 
-func (tr *triviaRepository) Update(_ context.Context, updatedTrivia *trivia.Trivia) error {
+func (tr *triviaRepository) Update(_ context.Context, updatedTrivia *pkg.Trivia) error {
 	tr.Lock()
 	defer tr.Unlock()
 
@@ -71,7 +71,7 @@ func (tr *triviaRepository) Update(_ context.Context, updatedTrivia *trivia.Triv
 			return nil
 		}
 	}
-	return trivia.ErrTriviaNotFound
+	return pkg.ErrTriviaNotFound
 }
 
 func (tr *triviaRepository) DeleteByID(_ context.Context, id int64) error {
@@ -84,5 +84,5 @@ func (tr *triviaRepository) DeleteByID(_ context.Context, id int64) error {
 			return nil
 		}
 	}
-	return trivia.ErrTriviaNotFound
+	return pkg.ErrTriviaNotFound
 }

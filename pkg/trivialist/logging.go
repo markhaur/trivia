@@ -1,4 +1,4 @@
-package trivia
+package trivialist
 
 import (
 	"context"
@@ -52,7 +52,7 @@ func (s *loggingMiddleware) Remove(ctx context.Context, id int64) (err error) {
 	return s.Service.Remove(ctx, id)
 }
 
-func (s *loggingMiddleware) Update(ctx context.Context, trivia pkg.Trivia) (err error) {
+func (s *loggingMiddleware) Update(ctx context.Context, trivia pkg.Trivia) (_ *pkg.Trivia, _ bool, err error) {
 	defer func(begin time.Time) {
 		s.logger.Printf(
 			"method", "update",
