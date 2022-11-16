@@ -15,7 +15,7 @@ type triviaRepository struct {
 }
 
 func NewTriviaRepository() pkg.TriviaRepository {
-	return &triviaRepository{trivialist: []pkg.Trivia{}}
+	return &triviaRepository{trivialist: []pkg.Trivia{}, exists: make(map[int64]bool)}
 }
 
 func (tr *triviaRepository) Insert(_ context.Context, newTrivia *pkg.Trivia) error {

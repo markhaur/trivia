@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/markhaur/trivia/pkg"
 	"github.com/matryer/way"
 )
@@ -206,7 +206,7 @@ func httpLoggingMiddleware(logger log.Logger, operation string) func(http.Handle
 			begin := time.Now()
 			lrw := &loggingResponseWriter{w, http.StatusOK}
 			next.ServeHTTP(lrw, r)
-			logger.Printf(
+			logger.Log(
 				"operation", operation,
 				"method", r.Method,
 				"path", r.URL.Path,
