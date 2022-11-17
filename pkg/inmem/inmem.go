@@ -9,26 +9,26 @@ import (
 
 type triviaRepository struct {
 	sync.RWMutex
-	trivialist []pkg.Trivia
+	trivialist []pkg.Fact
 	exists     map[int64]bool
 	counter    int64
 }
 
-func NewTriviaRepository() pkg.TriviaRepository {
-	return &triviaRepository{trivialist: []pkg.Trivia{}, exists: make(map[int64]bool)}
+func NewFactRepository() pkg.FactRepository {
+	return &triviaRepository{trivialist: []pkg.Fact{}, exists: make(map[int64]bool)}
 }
 
-func (tr *triviaRepository) Insert(_ context.Context, newTrivia *pkg.Trivia) error {
+func (tr *triviaRepository) Insert(_ context.Context, newFact *pkg.Fact) error {
 	tr.Lock()
 	defer tr.Unlock()
 
-	if newTrivia.ID > 0 {
-		if tr.exists[newTrivia.ID] {
-			return pkg.ErrTriviaAlreadyExists
+	if newFact.ID > 0 {
+		if tr.exists[newFact.ID] {
+			return pkg.ErrFactAlreadyExists
 		}
 
-		tr.exists[newTrivia.ID] = true
-		tr.trivialist = append(tr.trivialist, *newTrivia)
+		tr.exists[newFact.ID] = true
+		tr.trivialist = append(tr.trivialist, *newFact)
 		return nil
 	}
 
@@ -37,19 +37,19 @@ func (tr *triviaRepository) Insert(_ context.Context, newTrivia *pkg.Trivia) err
 		tr.counter++
 	}
 	tr.exists[tr.counter] = true
-	newTrivia.ID = tr.counter
-	tr.trivialist = append(tr.trivialist, *newTrivia)
+	newFact.ID = tr.counter
+	tr.trivialist = append(tr.trivialist, *newFact)
 	return nil
 }
 
-func (tr *triviaRepository) FindAll(_ context.Context) ([]pkg.Trivia, error) {
+func (tr *triviaRepository) FindAll(_ context.Context) ([]pkg.Fact, error) {
 	tr.RLock()
 	defer tr.RUnlock()
 
 	return tr.trivialist, nil
 }
 
-func (tr *triviaRepository) FindByID(_ context.Context, id int64) (*pkg.Trivia, error) {
+func (tr *triviaRepository) FindByID(_ context.Context, id int64) (*pkg.Fact, error) {
 	tr.RLock()
 	defer tr.RUnlock()
 
@@ -58,20 +58,20 @@ func (tr *triviaRepository) FindByID(_ context.Context, id int64) (*pkg.Trivia, 
 			return &t, nil
 		}
 	}
-	return nil, pkg.ErrTriviaNotFound
+	return nil, pkg.ErrFactNotFound
 }
 
-func (tr *triviaRepository) Update(_ context.Context, updatedTrivia *pkg.Trivia) error {
+func (tr *triviaRepository) Update(_ context.Context, updatedFact *pkg.Fact) error {
 	tr.Lock()
 	defer tr.Unlock()
 
 	for i, t := range tr.trivialist {
-		if t.ID == updatedTrivia.ID {
-			tr.trivialist[i] = *updatedTrivia
+		if t.ID == updatedFact.ID {
+			tr.trivialist[i] = *updatedFact
 			return nil
 		}
 	}
-	return pkg.ErrTriviaNotFound
+	return pkg.ErrFactNotFound
 }
 
 func (tr *triviaRepository) DeleteByID(_ context.Context, id int64) error {
@@ -84,5 +84,5 @@ func (tr *triviaRepository) DeleteByID(_ context.Context, id int64) error {
 			return nil
 		}
 	}
-	return pkg.ErrTriviaNotFound
+	return pkg.ErrFactNotFound
 }

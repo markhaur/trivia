@@ -1,4 +1,4 @@
-package trivialist
+package factlist
 
 import (
 	"encoding/json"
@@ -16,28 +16,28 @@ import (
 func NewServer(service Service, logger log.Logger) http.Handler {
 	s := server{service: service}
 
-	var handleSaveTrivia http.Handler
-	handleSaveTrivia = s.handleSaveTrivia()
-	handleSaveTrivia = httpLoggingMiddleware(logger, "handleSaveTrivia")(handleSaveTrivia)
+	var handleSaveFact http.Handler
+	handleSaveFact = s.handleSaveFact()
+	handleSaveFact = httpLoggingMiddleware(logger, "handleSaveFact")(handleSaveFact)
 
-	var handleListTrivia http.Handler
-	handleListTrivia = s.handleListTrivia()
-	handleListTrivia = httpLoggingMiddleware(logger, "handleListTrivia")(handleListTrivia)
+	var handleListFact http.Handler
+	handleListFact = s.handleListFact()
+	handleListFact = httpLoggingMiddleware(logger, "handleListFact")(handleListFact)
 
-	var handleRemoveTrivia http.Handler
-	handleRemoveTrivia = s.handleRemoveTrivia()
-	handleRemoveTrivia = httpLoggingMiddleware(logger, "handleRemoveTrivia")(handleRemoveTrivia)
+	var handleRemoveFact http.Handler
+	handleRemoveFact = s.handleRemoveFact()
+	handleRemoveFact = httpLoggingMiddleware(logger, "handleRemoveFact")(handleRemoveFact)
 
-	var handleUpdateTrivia http.Handler
-	handleUpdateTrivia = s.handleUpdateTrivia()
-	handleUpdateTrivia = httpLoggingMiddleware(logger, "handleUpdateTrivia")(handleUpdateTrivia)
+	var handleUpdateFact http.Handler
+	handleUpdateFact = s.handleUpdateFact()
+	handleUpdateFact = httpLoggingMiddleware(logger, "handleUpdateFact")(handleUpdateFact)
 
 	router := way.NewRouter()
 
-	router.Handle("POST", "/trivialist/v1/trivia", handleSaveTrivia)
-	router.Handle("GET", "/trivialist/v1/trivia", handleListTrivia)
-	router.Handle("DELETE", "/trivialist/v1/trivia/:id", handleRemoveTrivia)
-	router.Handle("PUT", "trivialist/v1/trivia/:id", handleUpdateTrivia)
+	router.Handle("POST", "/factlist/v1/fact", handleSaveFact)
+	router.Handle("GET", "/factlist/v1/fact", handleListFact)
+	router.Handle("DELETE", "/factlist/v1/fact/:id", handleRemoveFact)
+	router.Handle("PUT", "factlist/v1/fact/:id", handleUpdateFact)
 
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { writeError(w, ErrResourceNotFound) })
 
@@ -50,9 +50,9 @@ const (
 )
 
 var (
-	ErrNonNumericTriviaID = errors.New("trivia id must be numeric")
-	ErrResourceNotFound   = errors.New("resource not found")
-	ErrMethodNotAllowed   = errors.New("method not allowed")
+	ErrNonNumericFactID = errors.New("fact id must be numeric")
+	ErrResourceNotFound = errors.New("resource not found")
+	ErrMethodNotAllowed = errors.New("method not allowed")
 )
 
 type ErrInvalidRequestBody struct{ err error }
@@ -63,13 +63,15 @@ type server struct {
 	service Service
 }
 
-func (s *server) handleSaveTrivia() http.HandlerFunc {
+func (s *server) handleSaveFact() http.HandlerFunc {
 	type request struct {
-		Name string `json:"name"`
+		Question string `json:"question"`
+		Answer   string `json:"answer"`
 	}
 	type response struct {
 		ID        int64     `json:"id"`
-		Name      string    `json:"name"`
+		Question  string    `json:"question"`
+		Answer    string    `json:"answer"`
 		CreatedAt time.Time `json:"createdAt"`
 	}
 
@@ -80,23 +82,24 @@ func (s *server) handleSaveTrivia() http.HandlerFunc {
 			return
 		}
 
-		trivia, err := s.service.Save(r.Context(), pkg.Trivia{Name: req.Name})
+		fact, err := s.service.Save(r.Context(), pkg.Fact{Question: req.Question, Answer: req.Answer})
 		if err != nil {
 			writeError(w, err)
 			return
 		}
 		w.Header().Set(contentTypeKey, contentTypeValue)
-		json.NewEncoder(w).Encode(response{ID: trivia.ID, Name: trivia.Name, CreatedAt: trivia.CreatedAt})
+		json.NewEncoder(w).Encode(response{ID: fact.ID, Question: fact.Question, Answer: fact.Answer, CreatedAt: fact.CreatedAt})
 	}
 }
 
-func (s *server) handleListTrivia() http.HandlerFunc {
-	type trivia struct {
+func (s *server) handleListFact() http.HandlerFunc {
+	type fact struct {
 		ID        int64     `json:"id"`
-		Name      string    `json:"name"`
+		Question  string    `json:"question"`
+		Answer    string    `json:"answer"`
 		CreatedAt time.Time `json:"createdAt"`
 	}
-	type response []trivia
+	type response []fact
 	return func(w http.ResponseWriter, r *http.Request) {
 		list, err := s.service.List(r.Context())
 		if err != nil {
@@ -106,18 +109,18 @@ func (s *server) handleListTrivia() http.HandlerFunc {
 
 		resp := make(response, 0, len(list))
 		for _, v := range list {
-			resp = append(resp, trivia{ID: v.ID, Name: v.Name, CreatedAt: v.CreatedAt})
+			resp = append(resp, fact{ID: v.ID, Question: v.Question, Answer: v.Answer, CreatedAt: v.CreatedAt})
 		}
 		w.Header().Set(contentTypeKey, contentTypeValue)
 		json.NewEncoder(w).Encode(resp)
 	}
 }
 
-func (s *server) handleRemoveTrivia() http.HandlerFunc {
+func (s *server) handleRemoveFact() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.ParseInt(way.Param(r.Context(), "id"), 10, 64)
 		if err != nil {
-			writeError(w, ErrNonNumericTriviaID)
+			writeError(w, ErrNonNumericFactID)
 			return
 		}
 
@@ -129,21 +132,23 @@ func (s *server) handleRemoveTrivia() http.HandlerFunc {
 	}
 }
 
-func (s *server) handleUpdateTrivia() http.HandlerFunc {
+func (s *server) handleUpdateFact() http.HandlerFunc {
 	type request struct {
-		Name      string    `json:"Name"`
+		Question  string    `json:"Question"`
+		Answer    string    `json:"answer"`
 		CreatedAt time.Time `json:"createdAt"`
 	}
 	type response struct {
 		ID        int64     `json:"id"`
-		Name      string    `json:"name"`
+		Question  string    `json:"question"`
+		Answer    string    `json:"answer"`
 		CreatedAt time.Time `json:"CreatedAt"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.ParseInt(way.Param(r.Context(), "id"), 10, 64)
 		if err != nil {
-			writeError(w, ErrNonNumericTriviaID)
+			writeError(w, ErrNonNumericFactID)
 			return
 		}
 
@@ -153,7 +158,7 @@ func (s *server) handleUpdateTrivia() http.HandlerFunc {
 			return
 		}
 
-		trivia, isCreated, err := s.service.Update(r.Context(), pkg.Trivia{ID: id, Name: req.Name, CreatedAt: req.CreatedAt})
+		fact, isCreated, err := s.service.Update(r.Context(), pkg.Fact{ID: id, Question: req.Question, Answer: req.Answer, CreatedAt: req.CreatedAt})
 		if err != nil {
 			writeError(w, err)
 			return
@@ -164,17 +169,17 @@ func (s *server) handleUpdateTrivia() http.HandlerFunc {
 		}
 
 		w.Header().Set(contentTypeKey, contentTypeValue)
-		json.NewEncoder(w).Encode(response{ID: trivia.ID, Name: trivia.Name, CreatedAt: trivia.CreatedAt})
+		json.NewEncoder(w).Encode(response{ID: fact.ID, Question: fact.Question, Answer: fact.Answer, CreatedAt: fact.CreatedAt})
 	}
 }
 
 func writeError(w http.ResponseWriter, err error) {
 	switch err {
-	case ErrResourceNotFound, pkg.ErrTriviaNotFound:
+	case ErrResourceNotFound, pkg.ErrFactNotFound:
 		w.WriteHeader(http.StatusNotFound)
-	case pkg.ErrTriviaAlreadyExists:
+	case pkg.ErrFactAlreadyExists:
 		w.WriteHeader(http.StatusConflict)
-	case ErrNonNumericTriviaID:
+	case ErrNonNumericFactID:
 		w.WriteHeader(http.StatusBadRequest)
 	case ErrMethodNotAllowed:
 		w.WriteHeader(http.StatusMethodNotAllowed)

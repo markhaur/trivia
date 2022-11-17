@@ -1,4 +1,4 @@
-package trivialist
+package factlist
 
 import (
 	"context"
@@ -17,19 +17,19 @@ type loggingMiddleware struct {
 	Service
 }
 
-func (s *loggingMiddleware) Save(ctx context.Context, trivia pkg.Trivia) (_ *pkg.Trivia, err error) {
+func (s *loggingMiddleware) Save(ctx context.Context, fact pkg.Fact) (_ *pkg.Fact, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "save",
-			"name", trivia.Name,
+			"question", fact.Question,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Save(ctx, trivia)
+	return s.Service.Save(ctx, fact)
 }
 
-func (s *loggingMiddleware) List(ctx context.Context) (_ []pkg.Trivia, err error) {
+func (s *loggingMiddleware) List(ctx context.Context) (_ []pkg.Fact, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "list",
@@ -52,14 +52,14 @@ func (s *loggingMiddleware) Remove(ctx context.Context, id int64) (err error) {
 	return s.Service.Remove(ctx, id)
 }
 
-func (s *loggingMiddleware) Update(ctx context.Context, trivia pkg.Trivia) (_ *pkg.Trivia, _ bool, err error) {
+func (s *loggingMiddleware) Update(ctx context.Context, fact pkg.Fact) (_ *pkg.Fact, _ bool, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "update",
-			"name", trivia.Name,
+			"question", fact.Question,
 			"took", time.Since(begin),
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Update(ctx, trivia)
+	return s.Service.Update(ctx, fact)
 }

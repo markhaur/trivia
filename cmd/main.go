@@ -10,8 +10,8 @@ import (
 	"github.com/go-kit/log"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/markhaur/trivia/pkg/factlist"
 	"github.com/markhaur/trivia/pkg/inmem"
-	"github.com/markhaur/trivia/pkg/trivialist"
 )
 
 func main() {
@@ -39,14 +39,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	trivias := inmem.NewTriviaRepository()
+	trivias := inmem.NewFactRepository()
 
-	var service trivialist.Service
-	service = trivialist.NewService(trivias)
-	service = trivialist.LoggingMiddleware(logger)(service)
+	var service factlist.Service
+	service = factlist.NewService(trivias)
+	service = factlist.LoggingMiddleware(logger)(service)
 
 	mux := http.NewServeMux()
-	mux.Handle("/trivialist/v1/", trivialist.NewServer(service, logger))
+	mux.Handle("/factlist/v1/", factlist.NewServer(service, logger))
 
 	server := &http.Server{
 		Addr:         config.ServerAddress,
