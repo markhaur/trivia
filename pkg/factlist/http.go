@@ -142,7 +142,7 @@ func (s *server) handleUpdateFact() http.HandlerFunc {
 		ID        int64     `json:"id"`
 		Question  string    `json:"question"`
 		Answer    string    `json:"answer"`
-		CreatedAt time.Time `json:"CreatedAt"`
+		CreatedAt time.Time `json:"createdAt"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
