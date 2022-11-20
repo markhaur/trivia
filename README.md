@@ -15,13 +15,13 @@ docker-compose down
 ```
 
 ### Makefile
-#### Build
-```
-make build
-```
 #### Test
 ```
 make test
+```
+#### Build
+```
+make build
 ```
 #### Run
 ```
