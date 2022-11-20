@@ -1,9 +1,17 @@
-FROM golang:1.19.0
-
-RUN apt-get update
-RUN apt-get install -y curl telnet vim
-
-WORKDIR /usr/src/app
-
+# Build stage
+FROM golang:1.19-alpine3.16 AS builder
+WORKDIR /app
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 COPY . .
-RUN go mod tidy
+RUN go build -o trivia cmd/main.go
+
+# Run stage
+FROM alpine:3.16
+WORKDIR /app
+COPY --from=builder /app/trivia .
+COPY docker.env .
+
+EXPOSE 8082
+CMD ["/app/trivia"]
