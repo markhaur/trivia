@@ -18,7 +18,7 @@ func main() {
 	logger := log.NewJSONLogger(os.Stderr)
 	defer logger.Log("msg", "terminated")
 
-	path, found := os.LookupEnv("TRIVIA_CONFIG_PATH")
+	path, found := os.LookupEnv("TRIVIAAPP_CONFIG_PATH")
 	if found {
 		if err := godotenv.Load(path); err != nil {
 			logger.Log("msg", "could not load .env file", "path", path, "err", err)
@@ -26,13 +26,13 @@ func main() {
 	}
 
 	var config struct {
-		ServerAddress           string        `envconfig:"SERVER_ADDRESS" default:"localhost:8082"`
-		ServerWriteTimeout      time.Duration `envconfig:"SERVER_WRITE_TIMEOUT" default:"15s"`
-		ServerReadTimeout       time.Duration `envconfig:"SERVER_READ_TIMEOUT" default:"15s"`
-		ServerIdleTimeout       time.Duration `envconfig:"SERVER_IDLE_TIMEOUT" default:"60s"`
-		GracefulShutdownTimeout time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT" default:"30s"`
-		DBSource                string        `envconfig:"DB_SOURCE"`
-		DBConnectTimeout        time.Duration `envconfig:"DB_CONNECT_TIMEOUT"`
+		ServerAddress           string        `envconfig:"TRIVIA_SERVER_ADDRESS" default:"localhost:8082"`
+		ServerWriteTimeout      time.Duration `envconfig:"TRIVIA_SERVER_WRITE_TIMEOUT" default:"15s"`
+		ServerReadTimeout       time.Duration `envconfig:"TRIVIA_SERVER_READ_TIMEOUT" default:"15s"`
+		ServerIdleTimeout       time.Duration `envconfig:"TRIVIA_SERVER_IDLE_TIMEOUT" default:"60s"`
+		GracefulShutdownTimeout time.Duration `envconfig:"TRIVIA_GRACEFUL_SHUTDOWN_TIMEOUT" default:"30s"`
+		DBSource                string        `envconfig:"TRIVIA_DB_SOURCE"`
+		DBConnectTimeout        time.Duration `envconfig:"TRIVIA_DB_CONNECT_TIMEOUT"`
 	}
 	if err := envconfig.Process("TRIVIAAPP", &config); err != nil {
 		logger.Log("msg", "could not load env vars", "err", err)
