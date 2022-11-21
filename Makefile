@@ -2,7 +2,7 @@
 
 default: build
 
-build: 
+build: test 
 	go build -o app cmd/main.go
 
 test: 
